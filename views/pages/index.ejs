@@ -6,8 +6,8 @@
 <head>
     <% include ../head %>
         <style>
-           #dkvasani-datatable tr{
-               color: aliceblue;
+            #dkvasani-datatable tr {
+                color: aliceblue;
             }
         </style>
 </head>
@@ -31,6 +31,36 @@
 
                         <!-- Modal body -->
                         <div class="modal-body">
+                            <div class="bootstrap-iso">
+                                <div class="container-fluid">
+                                    <div class="row">
+                                        <!-- Form code begins -->
+                                        <div class="row">
+                                            <!-- <form method="post"> -->
+                                                <div class="form-inline">
+                                                    <div class="form-group col-md-5">
+                                                        <!-- Date input -->
+                                                        <!-- <label class="control-label" for="date">From Date</label> -->
+                                                        <input class="form-control" id="date" name="date" placeholder="DD-MM-YYY(From Date)" type="text" />
+                                                    </div>
+                                                    <div class="form-group col-md-5">
+                                                        <!-- Date input -->
+                                                        <!-- <label class="control-label" for="to_date">To Date</label> -->
+                                                        <input class="form-control" id="to_date" name="to_date" placeholder="DD-MM-YYY(To Date)" type="text" />
+                                                    </div>
+                                                    <div class="form-group col-md-2">
+                                                        <!-- Submit button -->
+                                                        <button class="btn btn-primary " onclick="changeStockDetails()">Search</button>
+                                                    </div>
+                                                    <input type="hidden" id="stockCode" value="">
+                                                </div>
+                                            <!-- </form> -->
+                                            <!-- Form code ends -->
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <hr>
                             <table class="table table-bordered display nowrap">
                                 <thead>
                                     <tr>
@@ -43,18 +73,18 @@
                                 </thead>
                                 <tbody>
                                     <tr>
-                                            <th>Max</th>
-                                            <td class="max_close">00</td>
-                                            <td class="max_high">00</td>
-                                            <td class="max_low">00</td>
-                                            <td class="max_open">00</td>
+                                        <th>Max</th>
+                                        <td class="max_close">00</td>
+                                        <td class="max_high">00</td>
+                                        <td class="max_low">00</td>
+                                        <td class="max_open">00</td>
                                     </tr>
                                     <tr>
-                                            <th>Min</th>
-                                            <td class="min_close">00</td>
-                                            <td class="min_high">00</td>
-                                            <td class="min_low">00</td>
-                                            <td class="min_open">00</td>
+                                        <th>Min</th>
+                                        <td class="min_close">00</td>
+                                        <td class="min_high">00</td>
+                                        <td class="min_low">00</td>
+                                        <td class="min_open">00</td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -109,7 +139,7 @@
                     <% for (var key in stockdata) { %>
                         <tr data-toggle="modal" data-target="#myModal" value="<%= stockdata[key].stock_code %>" <% if (stockdata[key].change_price
                             < 0) { %>style="background-color:#dc3545;"
-                            <% } else { %>style="background-color:#28a745;;"
+                            <% } else { %>style="background-color:#28a745;"
                                 <% } %> >
                                     <td class="stock_code btn <% if (stockdata[key].change_price < 0) { %>btn-danger
                                     <% } else { %>btn-success
@@ -164,52 +194,78 @@
         <script src="https://blackrockdigital.github.io/startbootstrap-modern-business/vendor/jquery/jquery.min.js"></script>
         <script src="https://blackrockdigital.github.io/startbootstrap-modern-business/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
         <script src="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js"></script>
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.4.1/js/bootstrap-datepicker.min.js"></script>
         <script type="text/javascript">
+
+            function fetchStockDetailsFromServer(url) {
+                $("#tbodyid").empty();
+                $.ajax({
+                    url: url, success: function (result) {
+                        console.log(result)
+                        var analysis = result.analysis;
+                        $("#myModal .max_high").text(analysis.maxHigh);
+                        $("#myModal .max_low").text(analysis.maxLow);
+                        $("#myModal .max_open").text(analysis.maxOpen);
+                        $("#myModal .max_close").text(analysis.maxClose);
+                        $("#myModal .min_close").text(analysis.minClose);
+                        $("#myModal .min_high").text(analysis.minHigh);
+                        $("#myModal .min_open").text(analysis.minOpen);
+                        $("#myModal .min_low").text(analysis.minLow);
+
+                        $.each(result.stockData, function (i, item) {
+
+                            if (item.close_price > item.prev_close) {
+                                var trColor = '<tr style ="background-color:#28a745;">';
+                            } else {
+                                var trColor = '<tr style ="background-color:#dc3545;">';
+                            }
+                            var str = $(trColor).append(
+                                $('<td>').text(item.date),
+                                $('<td>').text(item.high_price),
+                                $('<td>').text(item.close_price),
+                                $('<td>').text(item.last_price),
+                                $('<td>').text(item.low_price),
+                                $('<td>').text(item.open_price),
+                                $('<td>').text(item.prev_close),
+                                $('<td>').text(item.NoofTrades),
+                            );
+                            $("#myModal .modal-body #stock-details-table").append(str)
+                        });
+                    }
+                });
+            }
+            function changeStockDetails() {
+                var date_input = $('#date').val(); //our date input has the name "date"
+                var to_date_input = $('#to_date').val();
+                var stockCode = $("#stockCode").val();
+                var url = 'https://pt8o6ak18a.execute-api.ap-south-1.amazonaws.com/dev/stock-details?code=' + stockCode + '&fromDate=' + date_input + '&toDate=' + to_date_input;
+                fetchStockDetailsFromServer(url);
+            }
             $(document).ready(function () {
                 var table = $('#dkvasani-datatable').DataTable({
                     iDisplayLength: 1000
                 });
 
+                var date_input = $('input[name="date"]'); //our date input has the name "date"
+                var to_date_input = $('input[name="to_date"]'); //our date input has the name "date"
+                var container = $('.bootstrap-iso form').length > 0 ? $('.bootstrap-iso form').parent() : "body";
+                var options = {
+                    format: 'dd-mm-yyyy',
+                    container: container,
+                    todayHighlight: true,
+                    autoclose: true,
+                };
+                date_input.datepicker(options);
+                to_date_input.datepicker(options);
+
                 $('[data-toggle="modal"]').on('click',
                     function (e) {
                         $('.modal-dialog').css("max-width", $(window).width());
                         var stockCode = $(this).attr('value');
-                        $('.modal-title').text(stockCode);
-                        $("#tbodyid").empty();
-                        $.ajax({
-                            url: 'https://pt8o6ak18a.execute-api.ap-south-1.amazonaws.com/dev/stock-details?code=' + stockCode, success: function (result) {
-                                console.log(result)
-                                var analysis = result.analysis;
-                                $("#myModal .max_high").text(analysis.maxHigh);
-                                $("#myModal .max_low").text(analysis.maxLow);
-                                $("#myModal .max_open").text(analysis.maxOpen);
-                                $("#myModal .max_close").text(analysis.maxClose);
-                                $("#myModal .min_close").text(analysis.minClose);
-                                $("#myModal .min_high").text(analysis.minHigh);
-                                $("#myModal .min_open").text(analysis.minOpen);
-                                $("#myModal .min_low").text(analysis.minLow);
-                                
-                                $.each(result.stockData, function (i, item) {
-                                    
-                                    if (item.close_price > item.prev_close) {
-                                        var trColor = '<tr style ="background-color:green;">';
-                                    } else {
-                                        var trColor = '<tr style ="background-color:red;">';
-                                    }
-                                    var str = $(trColor).append(
-                                        $('<td>').text(item.date),
-                                        $('<td>').text(item.high_price),
-                                        $('<td>').text(item.close_price),
-                                        $('<td>').text(item.last_price),
-                                        $('<td>').text(item.low_price),
-                                        $('<td>').text(item.open_price),
-                                        $('<td>').text(item.prev_close),
-                                        $('<td>').text(item.NoofTrades),
-                                    );
-                                    $("#myModal .modal-body #stock-details-table").append(str)
-                                });
-                            }
-                        });
+                        $("#stockCode").val(stockCode);
+                        $('.modal-title').text(stockCode + 'Previous Days hostorical Data');
+                        var url = 'https://pt8o6ak18a.execute-api.ap-south-1.amazonaws.com/dev/stock-details?code=' + stockCode;
+                        fetchStockDetailsFromServer(url);
                     }
                 );
 
