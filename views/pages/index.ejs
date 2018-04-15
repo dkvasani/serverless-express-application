@@ -1,0 +1,100 @@
+<!-- views/pages/index.ejs -->
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <% include ../head %>
+</head>
+
+<body>
+    <% include ../header %>
+        <!-- Page Content -->
+        <div class="container">
+            <table class="table table-bordered display nowrap" id="dkvasani-datatable">
+                <thead>
+                    
+                    <tr style="cursor: pointer;">
+                        <!-- <th scope="col">#</th> -->
+                        <th scope="col">Stock Code</th>
+                        <th scope="col">Current Price</th>
+                        <th scope="col">Open</th>
+                        <th scope="col">High</th>
+                        <th scope="col">Low</th>
+                        <th scope="col">Pre Day Close</th>
+                        <th scope="col">52 Week High</th>
+                        <th scope="col">52 Week Low</th>
+                        <th scope="col"> (%)</th>
+                        <th scope="col">Change price</th>
+                        <th scope="col">EPS</th>
+                        <th scope="col">PE</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% for (var key in stockdata) { %>
+                        <tr <% if (stockdata[key].change_price < 0) { %>style="background-color:#FF0000;"
+                            <% } else { %>style="background-color:#7CFC00;"
+                                <% } %> >
+                                    <td>
+                                        <%= stockdata[key].stock_code %>
+                                    </td>
+                                    <td>
+                                        <%= stockdata[key].current_price %>
+                                    </td>
+                                    <td>
+                                        <%= stockdata[key].open_price %>
+                                    </td>
+                                    <td>
+                                        <%= stockdata[key].high_price %>
+                                    </td>
+                                    <td>
+                                        <%= stockdata[key].low_price %>
+                                    </td>
+                                    <td>
+                                        <%= stockdata[key].pre_day_close %>
+                                    </td>
+                                    <td>
+                                        <%= stockdata[key].fifty_two_week_high %>
+                                    </td>
+                                    <td>
+                                        <%= stockdata[key].fifty_two_week_low %>
+                                    </td>
+                                    <td>
+                                        <%= stockdata[key].change_percentage %>
+                                    </td>
+                                    <td>
+                                        <%= stockdata[key].change_price %>
+                                    </td>
+                                    <td>
+                                        <%= stockdata[key].eps %>
+                                    </td>
+                                    <td>
+                                        <%= stockdata[key].pe %>
+                                    </td>
+                        </tr>
+                        <% } %>
+                </tbody>
+            </table>
+
+        </div>
+        <!-- /.container -->
+        <footer class="py-5 bg-dark">
+            <% include ../footer %>
+        </footer>
+        <!-- Bootstrap core JavaScript -->
+        <script src="https://blackrockdigital.github.io/startbootstrap-modern-business/vendor/jquery/jquery.min.js"></script>
+        <script src="https://blackrockdigital.github.io/startbootstrap-modern-business/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+        <script src="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js"></script>
+        <script type="text/javascript">
+            $(document).ready(function () {
+                var table = $('#dkvasani-datatable').DataTable({
+                    iDisplayLength: 1000
+                });
+            });
+
+        </script>
+
+
+</body>
+
+</html>
