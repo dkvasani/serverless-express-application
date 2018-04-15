@@ -9,6 +9,17 @@ const MongoClient = require('mongodb').MongoClient
 app.use(bodyParser.urlencoded({ extended: true }))
 app.set('view engine', 'ejs')
 app.get('/', function (req, res) {
+    const request = require('request');
+
+    request('https://pt8o6ak18a.execute-api.ap-south-1.amazonaws.com/dev', { }, (err, response, body) => {
+        if (err) { return console.log(err); }
+        var data = JSON.parse(response.body);
+        res.render('pages/index.ejs', {stockdata : data.stockData})
+    });
+
+})
+
+app.get('/dk', function (req, res) {
     MongoClient.connect(mongodbConnectionString, (err, client) => {
         if (err) return console.log(err)
         db = client.db(dbName) // whatever your database name is

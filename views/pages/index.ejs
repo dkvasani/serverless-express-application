@@ -5,16 +5,91 @@
 
 <head>
     <% include ../head %>
+        <style>
+           #dkvasani-datatable tr{
+               color: aliceblue;
+            }
+        </style>
 </head>
 
 <body>
+
     <% include ../header %>
         <!-- Page Content -->
-        <div class="container">
+        <div class="container-fluid">
+
+            <!-- The Modal -->
+            <div class="modal fade container-fluid" id="myModal">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+
+                        <!-- Modal Header -->
+                        <div class="modal-header">
+                            <h4 class="modal-title">Modal Heading</h4>
+                            <button type="button" class="close" data-dismiss="modal">&times;</button>
+                        </div>
+
+                        <!-- Modal body -->
+                        <div class="modal-body">
+                            <table class="table table-bordered display nowrap">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Close</th>
+                                        <th>High</th>
+                                        <th>Low</th>
+                                        <th>Open</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                            <th>Max</th>
+                                            <td class="max_close">00</td>
+                                            <td class="max_high">00</td>
+                                            <td class="max_low">00</td>
+                                            <td class="max_open">00</td>
+                                    </tr>
+                                    <tr>
+                                            <th>Min</th>
+                                            <td class="min_close">00</td>
+                                            <td class="min_high">00</td>
+                                            <td class="min_low">00</td>
+                                            <td class="min_open">00</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <table class="table table-bordered display nowrap" id="stock-details-table">
+                                <thead>
+                                    <tr style="cursor: pointer; background-color: #3471af;">
+                                        <th scope="col">Date</th>
+                                        <th scope="col">High Price</th>
+                                        <th scope="col">Close Price</th>
+                                        <th scope="col">Last Price</th>
+                                        <th scope="col">Low Price</th>
+                                        <th scope="col">Open Price</th>
+                                        <th scope="col">Prev Close</th>
+                                        <th scope="col">NoofTrades</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tbodyid">
+
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Modal footer -->
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+
             <table class="table table-bordered display nowrap" id="dkvasani-datatable">
                 <thead>
-                    
-                    <tr style="cursor: pointer;">
+                    <tr style="cursor: pointer; background-color: #3471af;">
                         <!-- <th scope="col">#</th> -->
                         <th scope="col">Stock Code</th>
                         <th scope="col">Current Price</th>
@@ -32,11 +107,15 @@
                 </thead>
                 <tbody>
                     <% for (var key in stockdata) { %>
-                        <tr <% if (stockdata[key].change_price < 0) { %>style="background-color:#FF0000;"
-                            <% } else { %>style="background-color:#7CFC00;"
+                        <tr data-toggle="modal" data-target="#myModal" value="<%= stockdata[key].stock_code %>" <% if (stockdata[key].change_price
+                            < 0) { %>style="background-color:#dc3545;"
+                            <% } else { %>style="background-color:#28a745;;"
                                 <% } %> >
-                                    <td>
+                                    <td class="stock_code btn <% if (stockdata[key].change_price < 0) { %>btn-danger
+                                    <% } else { %>btn-success
+                                        <% } %>" title="Click here for more details">
                                         <%= stockdata[key].stock_code %>
+                                            </a>
                                     </td>
                                     <td>
                                         <%= stockdata[key].current_price %>
@@ -90,11 +169,52 @@
                 var table = $('#dkvasani-datatable').DataTable({
                     iDisplayLength: 1000
                 });
+
+                $('[data-toggle="modal"]').on('click',
+                    function (e) {
+                        $('.modal-dialog').css("max-width", $(window).width());
+                        var stockCode = $(this).attr('value');
+                        $('.modal-title').text(stockCode);
+                        $("#tbodyid").empty();
+                        $.ajax({
+                            url: 'https://pt8o6ak18a.execute-api.ap-south-1.amazonaws.com/dev/stock-details?code=' + stockCode, success: function (result) {
+                                console.log(result)
+                                var analysis = result.analysis;
+                                $("#myModal .max_high").text(analysis.maxHigh);
+                                $("#myModal .max_low").text(analysis.maxLow);
+                                $("#myModal .max_open").text(analysis.maxOpen);
+                                $("#myModal .max_close").text(analysis.maxClose);
+                                $("#myModal .min_close").text(analysis.minClose);
+                                $("#myModal .min_high").text(analysis.minHigh);
+                                $("#myModal .min_open").text(analysis.minOpen);
+                                $("#myModal .min_low").text(analysis.minLow);
+                                
+                                $.each(result.stockData, function (i, item) {
+                                    
+                                    if (item.close_price > item.prev_close) {
+                                        var trColor = '<tr style ="background-color:green;">';
+                                    } else {
+                                        var trColor = '<tr style ="background-color:red;">';
+                                    }
+                                    var str = $(trColor).append(
+                                        $('<td>').text(item.date),
+                                        $('<td>').text(item.high_price),
+                                        $('<td>').text(item.close_price),
+                                        $('<td>').text(item.last_price),
+                                        $('<td>').text(item.low_price),
+                                        $('<td>').text(item.open_price),
+                                        $('<td>').text(item.prev_close),
+                                        $('<td>').text(item.NoofTrades),
+                                    );
+                                    $("#myModal .modal-body #stock-details-table").append(str)
+                                });
+                            }
+                        });
+                    }
+                );
+
             });
-
         </script>
-
-
 </body>
 
 </html>
